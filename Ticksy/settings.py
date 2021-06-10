@@ -54,6 +54,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTH_USER_MODEL = "users.User"
+
 ROOT_URLCONF = 'Ticksy.urls'
 
 TEMPLATES = [
@@ -135,7 +137,16 @@ STATICFILES_DIRS = [
 
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# file and image size
+# 2 MB
+MAX_UPLOAD_FILE_SIZE = '2097152'
+# 400 KB
+MAX_UPLOAD_IMAGE_SIZE = '419430'
