@@ -15,7 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+APP_NAME = "TickSy"  # You can reference the name from another file...
+admin.site.site_header = "پنل مدیریت " + APP_NAME
+admin.site.site_title = APP_NAME
+admin.site.index_title = "صفحه مدیریت"
