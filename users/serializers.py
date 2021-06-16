@@ -52,3 +52,41 @@ class SignupSerializer(serializers.Serializer):
 
         user = User.objects.create_user(email, password)
         return user
+
+
+class SigninSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        label="ایمیل",
+        write_only=True
+    )
+    password = serializers.CharField(
+        label="رمز عبور",
+        min_length=6,
+        write_only=True,
+        help_text="رمز عبور باید حداقل ۶ رقمی باشد"
+    )
+    token = serializers.CharField(
+        label="توکن",
+        read_only=True
+    )
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email and password:
+            user = authenticate(request=self.context.get('request'),
+                                email=email, password=password)
+
+            # The authenticate call simply returns None for is_active=False
+            # users. (Assuming the default ModelBackend authentication
+            # backend.)
+            if not user:
+                msg = _('Unable to log in with provided credentials.')
+                raise serializers.ValidationError(msg, code='authorization')
+        else:
+            msg = _('Must include "email" and "password".')
+            raise serializers.ValidationError(msg, code='authorization')
+
+        attrs['user'] = user
+        return attrs

@@ -5,7 +5,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 
 from users.models import User
-from users.serializers import SignupSerializer
+from users.serializers import SignupSerializer, SigninSerializer
 
 
 class SignupApiView(generics.CreateAPIView):
@@ -39,3 +39,15 @@ class SignupApiView(generics.CreateAPIView):
             'token': token.key
         }
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class SigninApiView(generics.GenericAPIView):
+    permissions = [permissions.AllowAny]  # just for intention be more explicit
+    serializer_class = SigninSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key})
