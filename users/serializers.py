@@ -1,9 +1,11 @@
+import datetime
+
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from users.models import User, IDENTIFIED
+from users.models import User, IDENTIFIED, Identity, REQUESTED
 
 
 class SignupSerializer(serializers.Serializer):
@@ -105,3 +107,18 @@ class UserSerializer(serializers.ModelSerializer):
         if not hasattr(obj, 'identity'):
             return False
         return obj.identity.status == IDENTIFIED
+
+
+class UserIdentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Identity
+        fields = ['identifier_image', 'request_time', 'expire_time', 'status']
+        read_only_fields = ['request_time', 'expire_time', 'status']
+
+    def update(self, instance, validated_data):
+        super(UserIdentitySerializer, self).update(instance, validated_data)
+        instance.request_time = datetime.datetime.now()
+        instance.expire_time = None
+        instance.status = REQUESTED
+        instance.save()
+        return instance

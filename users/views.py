@@ -2,10 +2,11 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import permissions, generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from users.models import User
-from users.serializers import SignupSerializer, SigninSerializer, UserSerializer
+from users.models import User, IDENTIFIED
+from users.serializers import SignupSerializer, SigninSerializer, UserSerializer, UserIdentitySerializer
 
 
 class SignupApiView(generics.CreateAPIView):
@@ -59,3 +60,17 @@ class UserInfoApiView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class IdentityApiView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserIdentitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['put', 'get']
+
+    def update(self, request, *args, **kwargs):
+        if request.user.identity.status != IDENTIFIED:
+            return super(IdentityApiView, self).update(request, *args, **kwargs)
+        raise PermissionDenied('You are Identified! So you should not change identifier image by yourself')
+
+    def get_object(self):
+        return self.request.user.identity
