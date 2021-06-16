@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from users.models import User
+from users.models import User, IDENTIFIED
 
 
 class SignupSerializer(serializers.Serializer):
@@ -90,3 +90,18 @@ class SigninSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    is_identified = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email',
+                  'code', 'avatar', 'date_joined', 'is_identified']
+
+    def get_is_identified(self, obj):
+        if not hasattr(obj, 'identity'):
+            return False
+        return obj.identity.status == IDENTIFIED
