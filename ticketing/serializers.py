@@ -70,3 +70,10 @@ class TicketSerializer(serializers.ModelSerializer):
         for attachment in attachments:
             Attachment.objects.create(message=message, attachmentfile=attachment)
         return instance
+
+    def update(self, instance, validated_data):
+        status = validated_data.get('status', None)
+        if status:
+            instance.status = status
+            instance.save()
+        return instance
