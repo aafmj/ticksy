@@ -65,3 +65,14 @@ class AdminTicketListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return Ticket.objects.filter(Q(topic__slug=self.kwargs.get('slug')) & (
                 Q(topic__creator=self.request.user) | Q(topic__supporters__in=[self.request.user])))
+
+
+class TicketListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['id', 'title']
+    filterset_class = TicketFilter
+
+    def get_queryset(self):
+        return Ticket.objects.filter(creator=self.request.user)

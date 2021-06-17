@@ -1,8 +1,9 @@
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 
-from ticketing.models import Topic, Ticket
+from ticketing.models import Topic, Ticket, Message, Attachment
 from users.models import IDENTIFIED, User
 from users.serializers import UserSerializer
 
@@ -46,9 +47,26 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(write_only=True)
+    attachments = serializers.ListField(child=serializers.FileField(), write_only=True, required=False)
     creator = UserSerializer(read_only=True)
+    topic_slug = serializers.CharField(write_only=True)
 
     class Meta:
         model = Ticket
-        fields = ['id', 'creator', 'title', 'status', 'priority', 'last_update', 'creation_date', 'tags']
+        fields = ['id', 'creator', 'title', 'status', 'priority', 'text', 'attachments', 'last_update', 'creation_date',
+                  'tags', 'topic_slug']
         read_only_fields = ['id', 'creator', 'status']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        text = validated_data.pop('text')
+        attachments = validated_data.pop('attachments', [])
+        topic = get_object_or_404(Topic, slug=validated_data.pop('topic_slug'))
+        validated_data['creator'] = user
+        validated_data['topic'] = topic
+        instance = super().create(validated_data)
+        message = Message.objects.create(user=user, date=timezone.now(), text=text, ticket=instance)
+        for attachment in attachments:
+            Attachment.objects.create(message=message, attachmentfile=attachment)
+        return instance
