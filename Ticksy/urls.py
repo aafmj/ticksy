@@ -24,6 +24,7 @@ urlpatterns = [
 
 
     path('users/', include('users.urls')),
+    path('', include('ticketing.urls')),
 
     # documentations
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
