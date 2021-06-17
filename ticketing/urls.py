@@ -1,7 +1,7 @@
 from django.urls import path
 
 from ticketing.views import TopicListCreateAPIView, EmailListAPIView, TopicRetrieveUpdateDestroyAPIView, \
-    AdminTicketListAPIView, TicketListCreateAPIView, TicketRetrieveUpdateAPIView
+    AdminTicketListAPIView, TicketListCreateAPIView, TicketRetrieveUpdateAPIView, MessageListCreateAPIView
 
 urlpatterns = [
     path('topics/', TopicListCreateAPIView.as_view(), name='topic-list-create'),
@@ -11,4 +11,5 @@ urlpatterns = [
 
     path('tickets/', TicketListCreateAPIView.as_view(), name='ticket-list-create'),
     path('tickets/<int:id>/', TicketRetrieveUpdateAPIView.as_view(), name='ticket-detail'),
+    path('tickets/<int:id>/messages/', MessageListCreateAPIView.as_view(), name='message-list-create'),
 ]

@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
-from ticketing.models import Topic, Ticket, Message, Attachment
+from ticketing.models import Topic, Ticket, Message, Attachment, ANSWERED, WAITING_FOR_ANSWER
 from users.models import IDENTIFIED, User
 from users.serializers import UserSerializer
 
@@ -76,4 +76,37 @@ class TicketSerializer(serializers.ModelSerializer):
         if status:
             instance.status = status
             instance.save()
+        return instance
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = ['attachmentfile']
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    attachment_set = AttachmentSerializer(read_only=True, many=True)
+    attachments = serializers.ListField(child=serializers.FileField(), write_only=True, required=False)
+
+    class Meta:
+        model = Message
+        fields = ['id', 'user', 'date', 'rate', 'text', 'attachment_set', 'attachments']
+        read_only_fields = ['id', 'user', 'rate', 'date', 'attachment_set']
+
+    def create(self, validated_data):
+        attachments = validated_data.pop('attachments', [])
+        user = self.context['request'].user
+        validated_data['user'] = user
+        validated_data['ticket'] = get_object_or_404(Ticket, id=self.context.get('view').kwargs.get('id'))
+        instance = super().create(validated_data)
+        for attachment in attachments:
+            Attachment.objects.create(attachmentfile=attachment, message=instance)
+        if instance.user in instance.ticket.topic.supporters.all() or instance.user == instance.ticket.topic.creator:
+            instance.ticket.status = ANSWERED
+        else:
+            instance.ticket.status = WAITING_FOR_ANSWER
+        instance.ticket.save()
+
         return instance
