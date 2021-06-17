@@ -8,8 +8,8 @@ from rest_framework.response import Response
 
 from ticketing.filters import TicketFilter
 from ticketing.models import Topic, Ticket, Message
-from ticketing.permissions import IsIdentified, IsTopicOwner, IsTicketOwnerOrAdmin
-from ticketing.serializers import TopicSerializer, TicketSerializer, MessageSerializer
+from ticketing.permissions import IsIdentified, IsTopicOwner, IsTicketOwnerOrAdmin, IsTicketCreator
+from ticketing.serializers import TopicSerializer, TicketSerializer, MessageSerializer, MessageRateSerializer
 from users.models import User, IDENTIFIED
 from users.serializers import UserSerializer
 
@@ -93,3 +93,14 @@ class MessageListCreateAPIView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return Message.objects.filter(Q(ticket=self.kwargs.get('id'))).order_by('date')
+
+
+class MessageRateAPIView(generics.UpdateAPIView):
+    serializer_class = MessageRateSerializer
+    permission_classes = [IsAuthenticated, IsTicketCreator]
+    http_method_names = ['patch']
+
+    def get_object(self):
+        obj = get_object_or_404(Message, id=self.kwargs.get('id'))
+        self.check_object_permissions(self.request, obj)
+        return obj

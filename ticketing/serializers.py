@@ -110,3 +110,9 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.ticket.save()
 
         return instance
+
+
+class MessageRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['rate']

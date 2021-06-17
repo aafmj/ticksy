@@ -36,3 +36,11 @@ class IsTicketOwnerOrAdmin(permissions.BasePermission):
         user = request.user
         ticket = get_object_or_404(Ticket, id=view.kwargs.get('id'))
         return (user == ticket.topic.creator) or (user in ticket.topic.supporters) or (user == ticket.creator)
+
+
+class IsTicketCreator(permissions.BasePermission):
+    message = 'فقط سازنده های تیکت ها میتوانند به پیام ادمین ها رتبه دهند.'
+    status_code = status.HTTP_403_FORBIDDEN
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.ticket.creator
