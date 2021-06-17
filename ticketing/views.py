@@ -1,13 +1,15 @@
 from django.db.models import Q
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, filters, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ticketing.models import Topic
+from ticketing.filters import TicketFilter
+from ticketing.models import Topic, Ticket
 from ticketing.permissions import IsIdentified, IsTopicOwner
-from ticketing.serializers import TopicSerializer
+from ticketing.serializers import TopicSerializer, TicketSerializer
 from users.models import User, IDENTIFIED
 from users.serializers import UserSerializer
 
@@ -51,3 +53,15 @@ class TopicRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance.is_active = False
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminTicketListAPIView(generics.ListAPIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated, IsIdentified]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['id', 'title']
+    filterset_class = TicketFilter
+
+    def get_queryset(self):
+        return Ticket.objects.filter(Q(topic__slug=self.kwargs.get('slug')) & (
+                Q(topic__creator=self.request.user) | Q(topic__supporters__in=[self.request.user])))

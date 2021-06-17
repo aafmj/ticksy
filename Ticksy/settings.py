@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     # https://drf-spectacular.readthedocs.io/en/latest/readme.html
     'drf_spectacular',
 
+    # django-filter, see: https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html
+    'django_filters',
+
 ]
 
 MIDDLEWARE = [

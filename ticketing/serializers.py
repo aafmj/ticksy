@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
 
-from ticketing.models import Topic
+from ticketing.models import Topic, Ticket
 from users.models import IDENTIFIED, User
 from users.serializers import UserSerializer
 
@@ -43,3 +43,12 @@ class TopicSerializer(serializers.ModelSerializer):
     #     instance.creator = user
     #     instance.save()
     #     return instance
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    creator = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'creator', 'title', 'status', 'priority', 'last_update', 'creation_date', 'tags']
+        read_only_fields = ['id', 'creator', 'status']
