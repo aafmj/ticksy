@@ -16,3 +16,11 @@ class IsIdentified(permissions.BasePermission):
         return (user.identity.status == IDENTIFIED and (
             user.identity.expire_time > datetime.datetime.now() if user.identity.expire_time else True)) or user.is_superuser
         # return request.user.is_identified()
+
+
+class IsTopicOwner(permissions.BasePermission):
+    message = 'شما سازنده این تاپیک نیستید.'
+    status_code = status.HTTP_403_FORBIDDEN
+
+    def has_object_permission(self, request, view, obj):
+        return obj.creator == request.user
